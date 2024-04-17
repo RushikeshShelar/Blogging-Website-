@@ -1,0 +1,14 @@
+{
+  "name": "@rushikeshshelar/medium-common",
+  "version": "1.0.2",
+  "description": "An Common Module for my Medium Blog Project that will have the Zod Types and Zod infered Types",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Rushikesh Shelar",
+  "license": "ISC",
+  "dependencies": {
+    "zod": "^3.22.4"
+  }
+}
