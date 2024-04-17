@@ -1,0 +1,93 @@
+import { PrismaClient } from '@prisma/client/edge'
+import { withAccelerate } from '@prisma/extension-accelerate'
+
+import { sign } from 'hono/jwt'
+import { Hono } from 'hono'
+import { signInInput, signUpInput } from '@rushikeshshelar/medium-common';
+
+export const userRouter = new Hono<{
+    Bindings: {
+        DATABASE_URL: string,
+        JWT_SECRET: string
+    }
+}>();
+
+userRouter.post("/signup", async (c) => {
+    const prisma = new PrismaClient({
+        datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const body = await c.req.json();
+    const { success } = signUpInput.safeParse(body);
+
+    if(!success){
+        return c.json({
+            error: "Inputs not Correct"
+        })
+    }
+    try {
+        // TODO: HASH PASSWORD BEFORE STORING IN THE DATABASE
+
+        const user = await prisma.user.create({
+            data: {
+                name: body.name,
+                email: body.email,
+                password: body.password
+            }
+        })
+
+        const token = await sign({ id: user.id }, c.env.JWT_SECRET);
+
+        return c.json({
+            message: "User Created Successfully",
+            token
+        }, 200);
+
+    } catch (error) {
+        return c.json({
+            message: "Something Went Wrong! Please try again Later"
+        }, 400)
+    }
+})
+
+userRouter.post("/signin", async (c) => {
+    const prisma = new PrismaClient({
+        datasourceUrl: c.env.DATABASE_URL,
+    }).$extends(withAccelerate());
+
+    const body = await c.req.json();
+    const { success } = signInInput.safeParse(body);
+
+    if(!success){
+        return c.json({
+            error: "Inputs not Correct"
+        })
+    }
+
+    try {
+        const user = await prisma.user.findUnique({
+            where: {
+                email: body.email,
+                password: body.password
+            }
+        });
+
+        if (!user) return c.json({
+            error: "Unauthorized"
+        }, 403);
+
+        // TODO: PASSWORD AND TOKEN VERIFICATION
+
+        const token = await sign({ id: user.id }, c.env.JWT_SECRET);
+
+        return c.json({
+            token
+        })
+
+    } catch (error) {
+        return c.json({
+            message: "Something Went Wrong! Please try again Later"
+        }, 400)
+    }
+})
+
