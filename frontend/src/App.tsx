@@ -3,6 +3,7 @@ import './App.css'
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import { Blog, SignIn, SignUp } from './pages'
+import AllBlogs from './pages/AllBlogs'
 
 const router = [
   {
@@ -17,6 +18,10 @@ const router = [
     path: "/blog/:id",
     element: <Blog />
   },
+  {
+    path: "/blogs",
+    element: <AllBlogs />
+  }
 ]
 
 function App() {
