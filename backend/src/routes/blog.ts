@@ -4,6 +4,7 @@ import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 
 import { updateBlogInput, createBlogInput } from "@rushikeshshelar/medium-common"
+import { verify } from "hono/jwt";
 
 export const blogRouter = new Hono<{
     Bindings: {
@@ -14,6 +15,29 @@ export const blogRouter = new Hono<{
         userId: string
     }
 }>();
+
+blogRouter.use("*", async (c, next) => {
+    try {
+
+        const header = c.req.header("Authorization");
+
+        if (!header) return c.json({ error: "Unauthorized" })
+
+        const token = header.split(" ")[1]
+
+        const payload = await verify(token, c.env.JWT_SECRET);
+        if (!payload) {
+            c.status(403);
+            return c.json({ error: "Unauthorized" })
+        }
+        c.set("userId", payload.id);
+        await next();
+    }catch(e) {
+        return c.json({
+            err: "Invalid Request"
+        }, 400)
+    }
+})
 
 blogRouter.post("/", async (c) => {
     const prisma = new PrismaClient({
@@ -47,8 +71,10 @@ blogRouter.post("/", async (c) => {
         });
 
     } catch (e) {
+        console.log(e)
         return c.json({
-            err: "Something Went Wrong"
+            err: "Something Went Wrong",
+            e
         }, 400)
     }
 
@@ -134,11 +160,22 @@ blogRouter.get("/:id", async (c) => {
     }).$extends(withAccelerate());
 
     const id = Number(c.req.param("id"));
+    console.log(id)
 
     try {
-        const post = await prisma.post.findFirst({
+        const post = await prisma.post.findUnique({
             where: {
                 id
+            }, 
+            select: {
+                title: true,
+                content: true,
+                id: true,
+                author: {
+                    select: {
+                        name: true
+                    }
+                }
             }
         });
 
