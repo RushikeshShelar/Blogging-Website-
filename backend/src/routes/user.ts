@@ -23,7 +23,7 @@ userRouter.post("/signup", async (c) => {
     if(!success){
         return c.json({
             error: "Inputs not Correct"
-        })
+        }, 400)
     }
     try {
         // TODO: HASH PASSWORD BEFORE STORING IN THE DATABASE
@@ -61,7 +61,7 @@ userRouter.post("/signin", async (c) => {
     if(!success){
         return c.json({
             error: "Inputs not Correct"
-        })
+        }, 400)
     }
 
     try {
