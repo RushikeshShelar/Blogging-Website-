@@ -1,5 +1,5 @@
 import { Hono } from "hono";
-
+import { cors } from "hono/cors";
 import { PrismaClient } from '@prisma/client/edge'
 import { withAccelerate } from '@prisma/extension-accelerate'
 
@@ -15,14 +15,12 @@ export const blogRouter = new Hono<{
     }
 }>();
 
-
-
 blogRouter.post("/", async (c) => {
     const prisma = new PrismaClient({
         datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate());
 
-    const userId = c.get("userId");
+    const userId = Number(c.get("userId"));
 
     const body = await c.req.json();
     const { success } = createBlogInput.safeParse(body);
@@ -30,7 +28,7 @@ blogRouter.post("/", async (c) => {
     if (!success) {
         return c.json({
             error: "Inputs not Correct"
-        })
+        }, 400)
     }
 
     try {
@@ -51,7 +49,7 @@ blogRouter.post("/", async (c) => {
     } catch (e) {
         return c.json({
             err: "Something Went Wrong"
-        })
+        }, 400)
     }
 
 });
@@ -61,7 +59,7 @@ blogRouter.put("/update", async (c) => {
         datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate());
 
-    const userId = c.get("userId");
+    const userId = Number(c.get("userId"));
 
     const body = await c.req.json();
 
@@ -70,7 +68,7 @@ blogRouter.put("/update", async (c) => {
     if (!success) {
         return c.json({
             error: "Inputs not Correct"
-        })
+        }, 400)
     }
 
     try {
@@ -106,11 +104,18 @@ blogRouter.get("/bulk", async (c) => {
     try {
 
         const allPosts = await prisma.post.findMany({
-            where: {
-                published: false
+            take: 10,
+            select: {
+                title: true,
+                content: true,
+                id: true,
+                author: {
+                    select: {
+                        name: true
+                    }
+                }
             }
         });
-        console.log(allPosts)
 
         return c.json({
             allPosts
@@ -119,7 +124,7 @@ blogRouter.get("/bulk", async (c) => {
     } catch (error) {
         return c.json({
             error: "Something went wrong"
-        })
+        }, 400)
     }
 })
 
@@ -128,7 +133,7 @@ blogRouter.get("/:id", async (c) => {
         datasourceUrl: c.env.DATABASE_URL,
     }).$extends(withAccelerate());
 
-    const id = c.req.param("id")
+    const id = Number(c.req.param("id"));
 
     try {
         const post = await prisma.post.findFirst({
@@ -144,7 +149,7 @@ blogRouter.get("/:id", async (c) => {
     } catch (error) {
         return c.json({
             error: "Something went wrong"
-        })
+        }, 400)
     }
 
 })

@@ -1,6 +1,6 @@
 import { verify } from "hono/jwt";
 
-export function initMiddleware(app:any) {
+export function initMiddleware(app) {
     app.use('/api/v1/blog/*', async (c, next) => {
         try {
             const header = c.req.header("Authorization");
@@ -12,7 +12,6 @@ export function initMiddleware(app:any) {
             const payload = await verify(token, c.env.JWT_SECRET);
             if (!payload) {
                 c.status(403);
-                console.log("reached here")
                 return c.json({ error: "Unauthorized" })
             }
             c.set("userId", payload.id);
@@ -21,7 +20,7 @@ export function initMiddleware(app:any) {
         } catch (e) {
             return c.json({
                 error: "Something Went Wrong"
-            })
+            }, 400)
         }
     })
 }
