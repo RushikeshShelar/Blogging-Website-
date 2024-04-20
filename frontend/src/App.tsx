@@ -4,6 +4,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom'
 
 import { Blog, SignIn, SignUp } from './pages'
 import AllBlogs from './pages/AllBlogs'
+import PublishBlog from './pages/PublishBlog'
 
 const router = [
   {
@@ -21,6 +22,10 @@ const router = [
   {
     path: "/blogs",
     element: <AllBlogs />
+  },
+  {
+    path: "/publish",
+    element: <PublishBlog />
   }
 ]
 
