@@ -16,7 +16,7 @@ const FullBlog = ({ blog }: { blog: Blog }) => {
                         <div className="text-slate-400">
                             Posted on December 3, 2024
                         </div>
-                        <div className="text-gray-700">
+                        <div className="text-gray-700 max-w-screen-md">
                             {blog.content}
                         </div>
                     </div>
