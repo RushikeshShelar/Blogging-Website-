@@ -21,18 +21,20 @@ blogRouter.use("*", async (c, next) => {
 
         const header = c.req.header("Authorization");
 
-        if (!header) return c.json({ error: "Unauthorized" })
+        if (!header) return c.json({ error: "Unauthorized" }, 401)
 
         const token = header.split(" ")[1]
 
         const payload = await verify(token, c.env.JWT_SECRET);
+        console.log(payload)
         if (!payload) {
-            c.status(403);
-            return c.json({ error: "Unauthorized" })
+            return c.json({ 
+                error: "Unauthorized"
+            }, 403)
         }
         c.set("userId", payload.id);
         await next();
-    }catch(e) {
+    } catch (e) {
         return c.json({
             err: "Invalid Request"
         }, 400)
@@ -128,7 +130,6 @@ blogRouter.get("/bulk", async (c) => {
     }).$extends(withAccelerate());
 
     try {
-
         const allPosts = await prisma.post.findMany({
             take: 10,
             select: {
@@ -166,7 +167,7 @@ blogRouter.get("/:id", async (c) => {
         const post = await prisma.post.findUnique({
             where: {
                 id
-            }, 
+            },
             select: {
                 title: true,
                 content: true,
